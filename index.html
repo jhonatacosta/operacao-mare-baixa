@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#142030">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SIGIC · Operação Maré Baixa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: celular primeiro — cabeçalho compacto fixo no topo, abas de seção fixas embaixo, sub-abas roláveis; no computador as seções viram trilho lateral */
+:root{
+  --bg:#0d1520; --panel:#142030; --panel2:#1a293b; --line:#25384d;
+  --fg:#e3e9f0; --muted:#8fa0b4; --accent:#d9a945; --accent-ink:#1a1206;
+  --alert:#e2584c; --ok:#5cbf8c; --hl:rgba(217,169,69,.14); --paper:#efe6d2; --paper-ink:#2a241a;
+  --f-disp:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --toph:56px; --both:64px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{font-size:16px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+img{max-width:100%;display:block}
+.mono{font-family:var(--f-mono)}
+.muted{color:var(--muted)}
+h1,h2,h3{font-family:var(--f-disp);text-transform:uppercase;letter-spacing:.03em;margin:0;line-height:1.1;text-wrap:balance}
+h2{font-size:1.75rem}
+h3{font-size:1.05rem;letter-spacing:.08em;color:var(--muted);margin:1.3rem 0 .6rem}
+p{margin:0 0 .8rem;max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:.65rem 1rem;cursor:pointer;font-weight:600;min-height:44px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{border-color:var(--alert);color:var(--alert);background:transparent}
+.btn.sm{padding:.35rem .7rem;font-size:.82rem;min-height:36px}
+.pinb{all:unset;cursor:pointer;width:36px;height:36px;display:inline-grid;place-items:center;border:1px solid var(--line);border-radius:6px;color:var(--muted);flex:none}
+.pinb:hover,.pinb.on{color:var(--accent);border-color:var(--accent)}
+.pinb:focus-visible{outline:2px solid var(--accent)}
+input[type=text],input[type=password],input[type=search],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:.65rem .75rem;width:100%;min-height:44px}
+textarea{min-height:6rem;resize:vertical}
+label.f{display:grid;gap:.3rem;font-size:.8rem;color:var(--muted);font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.06em}
+
+/* LOGIN */
+#login{min-height:100vh;display:grid;place-items:center;padding:2rem 16px}
+.lg{width:100%;max-width:440px;display:grid;gap:1.1rem}
+.seal{display:flex;gap:.9rem;align-items:center}
+.lg h1{font-size:2.8rem}
+.lg .card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--accent);padding:1.3rem;display:grid;gap:.9rem;border-radius:6px}
+.err{color:var(--alert);font-size:.88rem;min-height:1.2em}
+.faces{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.faces img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;filter:grayscale(.55) contrast(1.05);border:1px solid var(--line)}
+.resume{background:var(--hl);border:1px solid var(--accent);border-radius:6px;padding:.8rem 1rem;display:grid;gap:.6rem}
+
+/* APP */
+.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);padding:calc(.5rem + env(safe-area-inset-top,0px)) 16px .5rem;display:flex;align-items:center;gap:.6rem 1.2rem;flex-wrap:wrap}
+.top .brand{font-family:var(--f-disp);font-weight:700;font-size:1.2rem;letter-spacing:.06em;white-space:nowrap}
+.top .brand span{color:var(--accent)}
+.stat{font-family:var(--f-mono);font-size:.76rem;color:var(--muted);display:flex;gap:.35rem;align-items:baseline;white-space:nowrap}
+.stat b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+.saved{position:absolute;right:16px;bottom:3px;font-family:var(--f-mono);font-size:.62rem;color:var(--ok);opacity:0;transition:opacity .3s;pointer-events:none}
+.saved.on{opacity:1}
+.top .sp{flex:1}
+.shell{display:grid;grid-template-columns:240px minmax(0,1fr)}
+nav.rail{border-right:1px solid var(--line);padding:1rem .6rem 2rem;position:sticky;top:var(--toph);align-self:start;max-height:calc(100vh - var(--toph));overflow:auto}
+nav.rail .grp{font-family:var(--f-mono);font-size:.66rem;letter-spacing:.16em;color:var(--muted);padding:.9rem .7rem .3rem;text-transform:uppercase}
+nav.rail button,.subs button{all:unset;cursor:pointer;box-sizing:border-box}
+nav.rail button{width:100%;padding:.5rem .7rem;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-size:.93rem}
+nav.rail button:hover{background:var(--panel)}
+nav.rail button[aria-current=true]{background:var(--hl);color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+nav.rail button:focus-visible,.subs button:focus-visible,.tabbar button:focus-visible{outline:2px solid var(--accent)}
+.badge{font-family:var(--f-mono);font-size:.68rem;background:var(--alert);color:#fff;border-radius:99px;padding:0 .45rem;line-height:1.55}
+.badge.lock{background:transparent;border:1px solid var(--line);color:var(--muted)}
+main{padding:1.4rem 16px 4rem;min-width:0}
+.wrap{max-width:980px;display:grid;gap:1rem}
+.subs{display:none}
+.tabbar{display:none}
+
+.search{display:flex;gap:.5rem}
+.search input{flex:1;min-width:0;font-family:var(--f-mono)}
+.res{display:grid;gap:.7rem}
+.rec{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1rem;min-width:0}
+.rec.hit{border-color:var(--accent)}
+.rec header{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;margin-bottom:.7rem}
+.rec header h4{margin:0;font-family:var(--f-disp);font-size:1.3rem;letter-spacing:.02em;text-transform:uppercase;line-height:1.1}
+.who{display:flex;gap:.9rem;align-items:center;min-width:0}
+.who img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--line);flex:none}
+.kv{display:grid;grid-template-columns:minmax(7rem,11rem) minmax(0,1fr);gap:.35rem 1rem;font-size:.93rem;margin:0}
+.kv dt{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:.2rem}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.flag{display:inline-block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;padding:.05rem .45rem;border-radius:3px;white-space:nowrap}
+.flag.red{color:var(--alert)} .flag.ok{color:var(--ok)} .flag.amb{color:var(--accent)}
+.link{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.link:focus-visible{outline:2px solid var(--accent)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:.55rem .7rem;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--panel2);font-weight:400;white-space:nowrap}
+td.t{font-family:var(--f-mono);white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-mono);white-space:nowrap}
+td.act{width:44px;text-align:right}
+tr.mark td{background:var(--hl)}
+.neg{color:var(--alert)} .pos{color:var(--ok)}
+.empty{border:1px dashed var(--line);border-radius:8px;padding:1.4rem;color:var(--muted);text-align:center}
+.notice{background:var(--hl);border-left:3px solid var(--accent);padding:.8rem 1rem;border-radius:0 6px 6px 0;font-size:.93rem}
+.notice.red{background:rgba(226,88,76,.1);border-color:var(--alert)}
+.msg{display:grid;gap:.2rem;padding:1rem;background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:0}
+.msg .meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.msg.locked{opacity:.8}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.pin{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.6rem;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem}
+.pin small{display:block;color:var(--muted);font-family:var(--f-mono);font-size:.74rem;overflow-wrap:anywhere}
+.opts{display:grid;gap:.45rem}
+.opt{display:flex;gap:.7rem;align-items:flex-start;padding:.75rem .85rem;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--panel)}
+.opt:has(input:checked){border-color:var(--accent);background:var(--hl)}
+.opt input{margin-top:.2rem;accent-color:var(--accent);width:18px;height:18px;flex:none}
+.opt img{width:44px;height:44px;object-fit:cover;border-radius:6px;flex:none}
+.score{font-family:var(--f-disp);font-size:4.5rem;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.verdict{border:2px solid var(--accent);padding:1.2rem;border-radius:8px;display:grid;gap:.7rem}
+.verdict.fail{border-color:var(--alert)}
+.story p{font-size:1rem;line-height:1.65}
+.toast{position:fixed;left:50%;bottom:calc(var(--both) + 1rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent);color:var(--accent-ink);font-weight:600;padding:.7rem 1.1rem;border-radius:6px;z-index:60;max-width:calc(100% - 32px);box-shadow:0 8px 30px rgba(0,0,0,.45);text-align:center}
+.stampx{display:inline-block;font-family:var(--f-disp);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--alert);border:2px solid var(--alert);padding:.1rem .6rem;transform:rotate(-4deg);border-radius:3px}
+.confirm{border:1px solid var(--alert);background:rgba(226,88,76,.08);padding:1rem;border-radius:8px;display:grid;gap:.7rem}
+.codebox{font-family:var(--f-mono);font-size:.78rem;word-break:break-all;min-height:5rem}
+
+/* suspeitos: fichas de papel com foto */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.9rem}
+.card-s{all:unset;cursor:pointer;background:var(--paper);color:var(--paper-ink);border-radius:4px;padding:8px 8px 10px;box-shadow:0 6px 18px rgba(0,0,0,.35);display:grid;gap:.4rem;transition:transform .15s}
+.card-s:hover{transform:translateY(-2px) rotate(-.4deg)}
+.card-s:focus-visible{outline:2px solid var(--accent)}
+.card-s img{width:100%;aspect-ratio:5/4;object-fit:cover;border-radius:2px}
+.card-s b{font-family:var(--f-disp);font-size:1.15rem;text-transform:uppercase;letter-spacing:.02em;line-height:1.05}
+.card-s span{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:#6b604c}
+/* fotos do local */
+.photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}
+.photos figure{margin:0;background:var(--paper);padding:6px 6px 8px;border-radius:3px;cursor:zoom-in;color:var(--paper-ink)}
+.photos figure.wide{grid-column:1/-1}
+.photos img{width:100%;aspect-ratio:16/10;object-fit:cover}
+.photos .wide img{aspect-ratio:3/2}
+.photos .plan img{aspect-ratio:auto;object-fit:contain}
+.photos figcaption{font-family:var(--f-mono);font-size:.7rem;margin-top:5px;letter-spacing:.04em}
+.lightbox{position:fixed;inset:0;z-index:80;background:rgba(5,9,14,.92);display:grid;place-items:center;padding:16px;cursor:zoom-out}
+.lightbox img{max-height:82vh;width:auto;max-width:100%;border-radius:4px;margin:0 auto}
+.lightbox p{color:var(--fg);text-align:center;margin:.8rem auto 0;font-family:var(--f-mono);font-size:.8rem}
+
+/* ===== CELULAR ===== */
+@media (max-width:820px){
+  body{font-size:15.5px}
+  .top{gap:.2rem .9rem}
+  .top .hide-m{display:none}
+  .shell{grid-template-columns:1fr}
+  nav.rail{display:none}
+  .subs{display:flex;gap:.4rem;overflow-x:auto;padding:.6rem 16px;position:sticky;top:var(--toph);z-index:15;background:var(--bg);border-bottom:1px solid var(--line);scrollbar-width:none}
+  .subs::-webkit-scrollbar{display:none}
+  .subs button{white-space:nowrap;padding:.45rem .85rem;border-radius:99px;border:1px solid var(--line);font-size:.88rem;display:flex;gap:.4rem;align-items:center;min-height:36px}
+  .subs button[aria-current=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+  .subs:empty{display:none}
+  main{padding:1rem 16px calc(var(--both) + 2rem + env(safe-area-inset-bottom,0px))}
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .tabbar button{all:unset;cursor:pointer;display:grid;justify-items:center;gap:2px;padding:.5rem 0 .55rem;font-size:.68rem;font-family:var(--f-mono);letter-spacing:.04em;color:var(--muted);position:relative;min-height:var(--both);box-sizing:border-box}
+  .tabbar button[aria-current=true]{color:var(--accent)}
+  .tabbar svg{width:22px;height:22px}
+  .tabbar .dot{position:absolute;top:6px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:var(--alert)}
+  h2{font-size:1.55rem}
+  .kv{grid-template-columns:1fr;gap:.05rem}
+  .kv dd{margin-bottom:.55rem}
+  .score{font-size:3.4rem}
+  table.rt, table.rt tbody, table.rt tr, table.rt td{display:block;width:100%}
+  table.rt tr:first-child{display:none}
+  table.rt tr{border-bottom:1px solid var(--line);padding:.6rem .8rem;position:relative}
+  table.rt td{border:0;padding:.1rem 0;white-space:normal;text-align:left}
+  table.rt td.act{position:absolute;top:.55rem;right:.6rem;width:auto;padding:0}
+  table.rt td[data-l]:not(.lead)::before{content:attr(data-l);display:block;font-family:var(--f-mono);font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  table.rt td.lead{font-family:var(--f-mono);font-weight:600;padding-right:44px}
+  table.rt td.num{text-align:left}
+  .tw:has(table.rt){overflow:visible}
+  .search .btn{padding-inline:.8rem}
+}
+@media (min-width:821px){ :root{--both:0px} .saved{position:static} }
+@media (prefers-reduced-motion:no-preference){
+  .fade{animation:fd .3s ease-out}
+  @keyframes fd{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="lg">
+    <div class="seal">
+      <svg width="54" height="54" viewBox="0 0 58 58" aria-hidden="true"><path d="M29 3 L52 12 V29 C52 43 41 52 29 55 C17 52 6 43 6 29 V12 Z" fill="none" stroke="#d9a945" stroke-width="2.4"/><path d="M29 14 l3.5 8 8.5 .6 -6.5 5.6 2 8.4 -7.5-4.6 -7.5 4.6 2-8.4 -6.5-5.6 8.5-.6z" fill="#d9a945"/><text x="29" y="48" text-anchor="middle" font-family="IBM Plex Mono" font-size="6.5" fill="#8fa0b4" letter-spacing="1">DFIC</text></svg>
+      <div><div class="eyebrow">Departamento Federal de Investigação Criminal</div><div class="muted" style="font-size:.8rem">Órgão fictício · jogo de investigação</div></div>
+    </div>
+    <h1>SIGIC</h1>
+    <p class="muted" style="margin:-.6rem 0 0">Sistema Integrado de Gestão de Inquéritos Criminais · acesso restrito à força-tarefa da Operação Maré Baixa.</p>
+    <div class="faces" aria-hidden="true"><img src="img/ricardo.jpg" alt=""><img src="img/camila.jpg" alt=""><img src="img/marcelo.jpg" alt=""><img src="img/rosangela.jpg" alt=""><img src="img/felipe.jpg" alt=""></div>
+    <div class="resume" id="resume" hidden></div>
+    <form class="card" id="lf" autocomplete="off">
+      <label class="f">Matrícula<input type="text" id="lmat" placeholder="DFIC-0000" autocapitalize="characters" required></label>
+      <label class="f">Senha<input type="password" id="lpw" required></label>
+      <label class="f">Nome da equipe<input type="text" id="lteam" placeholder="Ex.: Equipe Gaivota" maxlength="40"></label>
+      <div class="err" id="lerr" role="alert"></div>
+      <button class="btn primary" type="submit">Acessar inquérito</button>
+      <div class="muted" style="font-size:.82rem">As credenciais estão na folha 01 do dossiê impresso.</div>
+    </form>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header class="top" id="top" style="position:sticky">
+    <div class="brand">SIGIC <span>·</span> IP 0814</div>
+    <div class="stat hide-m">Equipe <b id="sTeam"></b></div>
+    <div class="stat">⏱ <b id="sClock">00h00</b></div>
+    <div class="stat">Mandados <b id="sWar">0/6</b></div>
+    <span class="saved" id="saved">✓ salvo</span>
+    <div class="sp"></div>
+    <div class="stat hide-m" id="sStatus"></div>
+  </header>
+  <div class="subs" id="subs"></div>
+  <div class="shell">
+    <nav class="rail" id="rail" aria-label="Módulos"></nav>
+    <main><div class="wrap fade" id="view"></div></main>
+  </div>
+  <nav class="tabbar" id="tabbar" aria-label="Seções"></nav>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+<div class="lightbox" id="lb" hidden><div><img id="lbimg" alt=""><p id="lbcap"></p></div></div>
+
+<script>
+(function(){
+const MAXW=6;
+const norm=s=>(s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+const digits=s=>(s||'').replace(/\D/g,'');
+const esc=s=>(s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const strip=s=>(s||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+const $=id=>document.getElementById(id);
+
+/* ============ BASE DE DADOS DO CASO ============ */
+const PEOPLE=[
+ {id:'ricardo',foto:'ricardo',nome:'Ricardo Almeida',cpf:'077.315.948-01',idade:'43 anos',sit:['Suspeito','amb'],papel:'Empresário · Alfa Norte',prof:'Empresário · sócio-diretor da Alfa Norte Logística Ltda.',end:'Av. Vicente de Carvalho, 1200, ap. 1801 · Boqueirão, Santos/SP',tel:'(13) 99701-0001',veic:['RTX9A01'],fil:'—',emp:['alfanorte'],obs:['Alvo da fiscalização sigilosa chefiada por Beatriz M. Cardoso.','Responde a dois inquéritos fiscais arquivados (2019, 2022).','Cliente do escritório Ferreira & Campos Advogados desde 2024.']},
+ {id:'camila',foto:'camila',nome:'Camila Ferreira',cpf:'331.640.287-09',idade:'36 anos',sit:['Suspeita','amb'],papel:'Advogada · Ferreira & Campos',prof:'Advogada criminalista · OAB/SP 312.448 · sócia da Ferreira & Campos Advogados',end:'R. Azevedo Sodré, 300, ap. 92 · Gonzaga, Santos/SP',tel:'(13) 98120-7714',veic:['FQK3C81'],fil:'—',emp:['ferreira'],obs:['Representação na OAB/SP aberta em 2025 por Beatriz M. Cardoso (suposta orientação a cliente para ocultar documentos). Em andamento. Pode gerar suspensão.','Advogada da Alfa Norte Logística.']},
+ {id:'marcelo',foto:'marcelo',nome:'Marcelo Vieira',cpf:'118.402.775-30',idade:'52 anos',sit:['Suspeito','amb'],papel:'Marido · Marina Brava',prof:'Empresário · proprietário da Marina Brava Náutica Ltda. (Guarujá)',end:'Cond. Recanto da Enseada, Casa 14 · Enseada, Guarujá/SP',tel:'(13) 98744-2091',veic:['GHT4E19'],fil:'Célia Vieira · Roberto Vieira',rel:[['Cônjuge','beatriz'],['Funcionário','felipe']],emp:['marina'],obs:['Apólice de seguro de vida (Vida Plena Seguros): segurada Beatriz M. Cardoso, beneficiário Marcelo. Capital alterado em 12/05/2026 de R$ 400.000,00 para <b>R$ 1.200.000,00</b>.','Marina Brava Náutica: protestos bancários somando R$ 412.000,00 (2026).','<b>Hospedagens em 2026:</b> Itajaí/SC, de 08/03 a 21/03 (Marejada Náutica) · São Paulo/SP, de 19/06 a 24/06 (São Paulo Boat Show).','Sem antecedentes criminais.']},
+ {id:'rosangela',foto:'rosangela',nome:'Rosângela Freitas',cpf:'159.008.773-21',idade:'45 anos',sit:['Suspeita','amb'],papel:'Diarista da Casa 14',prof:'Diarista',end:'R. das Acácias, 77 · Vila Zilda, Guarujá/SP',tel:'(13) 99733-0102',veic:[],fil:'—',obs:['Presta serviço à Casa 14 aos sábados desde 2023. Possui chave e código do alarme.','Cadastro de prestadora no condomínio: entradas aos sábados (Casa 14). <b>Desde 07/2026, também às sextas à noite (Casa 22)</b>.','Nenhum acesso registrado ao condomínio em 16/03 ou 22/06.','Sem antecedentes criminais.']},
+ {id:'felipe',foto:'felipe',nome:'Felipe Castro',cpf:'402.119.638-55',idade:'28 anos',sit:['Suspeito','amb'],papel:'Funcionário · Marina Brava',prof:'Auxiliar de manutenção · Marina Brava Náutica (desde 03/2023)',end:'Av. Bartolomeu de Gusmão, 88, ap. 61 · Embaré, Santos/SP',tel:'(13) 99130-5521',veic:['FQJ3B27'],fil:'<button class="link" data-goto="pessoa:regina">Regina Castro</button> · pai não declarado',rel:[['Mãe','regina'],['Empregador','marcelo']],obs:['Cumpriu medida socioeducativa na Fundação Casa (2014–2016).','Contratado pela Marina Brava por indicação de Beatriz M. Cardoso, voluntária do projeto Segunda Chance.','Visitante frequente do Cond. Recanto da Enseada (tag autorizada pela Casa 14). <b>Acessos com a tag em 2026: 16/03, 19h40–23h55 · 22/06, 18h30–00h20</b> · 01/08, 10h00–13h10. A tag não foi usada em 14/08.','Protesto em cartório: Hospital Santa Clara do Litoral, R$ 86.400,00, registrado em 11/2025. <b>Quitado em 28/03/2026.</b>']},
+ {id:'beatriz',nome:'Beatriz Moraes Cardoso',cpf:'214.887.390-12',idade:'41 anos',sit:['Falecida em 14/08/2026','red'],papel:'Vítima',prof:'Auditora-Fiscal da Receita Federal desde 2011 · Alfândega do Porto de Santos',end:'Cond. Recanto da Enseada, Casa 14 · Enseada, Guarujá/SP',tel:'(13) 99402-1188',veic:['FJM7C30'],fil:'Lúcia Moraes · Antônio Moraes (falecido)',rel:[['Cônjuge','marcelo'],['Irmã','luisa']],obs:['Chefe da fiscalização sigilosa da Alfa Norte Logística (desde 01/2026).','Voluntária do projeto Segunda Chance (reinserção de jovens egressos da Fundação Casa).','Prêmio Destaque Fiscal 2024 (troféu em vidro maciço).','Nenhuma receita controlada registrada.']},
+ {id:'paulo',nome:'Paulo Ramos Teixeira',cpf:'205.774.118-63',idade:'58 anos',sit:['Testemunha','ok'],papel:'Inspetor-chefe',prof:'Inspetor-chefe da Alfândega do Porto de Santos',end:'Gonzaga, Santos/SP',tel:'(13) 99655-3080',veic:[],fil:'—',obs:['<b>Licença médica de 02/03 a 31/03/2026</b> (internação para cirurgia cardíaca, Hospital Ana Costa).','Autorizava por telefone as datas das vistorias informadas pela vítima.']},
+ {id:'luisa',nome:'Luísa Moraes',cpf:'301.226.459-40',idade:'38 anos',sit:['Testemunha','ok'],papel:'Irmã da vítima',prof:'Professora · Curitiba/PR',end:'Curitiba/PR',tel:'(41) 99120-3344',veic:[],fil:'Lúcia Moraes · Antônio Moraes (falecido)',rel:[['Irmã','beatriz']],obs:['Recebeu o áudio da vítima às 21h41 de 14/08 (Prova B).']},
+ {id:'juliana',nome:'Juliana Prates Lemos',cpf:'366.540.912-07',idade:'36 anos',sit:['Sem vínculo direto','ok'],papel:'Corretora',prof:'Corretora de imóveis',end:'Av. Almirante Saldanha da Gama, 77 · Ponta da Praia, Santos/SP',tel:'(13) 99877-6612',veic:[],fil:'—',obs:['Intermediou em 2025 a venda de duas lanchas da Marina Brava.','Sem antecedentes.']},
+ {id:'sonia',nome:'Sônia Brandt',cpf:'044.712.336-80',idade:'67 anos',sit:['Sem vínculo direto','ok'],papel:'Moradora da Casa 22',prof:'Aposentada',end:'Cond. Recanto da Enseada, Casa 22 · Guarujá/SP',tel:'(13) 99101-4422',veic:[],fil:'—',obs:['Vizinha da vítima. Disputa judicial com a Casa 14 sobre a altura do muro divisório (2025).','Contrata Rosângela Freitas para faxina extra às sextas à noite, pagamento por Pix, "sem que a vizinha saiba".']},
+ {id:'regina',nome:'Regina Castro',cpf:'188.330.415-90',idade:'54 anos',sit:['Sem vínculo direto','ok'],papel:'Mãe de Felipe',prof:'Costureira',end:'Av. Bartolomeu de Gusmão, 88, ap. 61 · Embaré, Santos/SP',tel:'(13) 3221-4410',veic:[],fil:'<button class="link" data-goto="pessoa:mariaap">Maria Aparecida Castro</button> (falecida) · —',rel:[['Filho','felipe'],['Mãe','mariaap']],obs:['Paciente do Hospital Santa Clara do Litoral em 2024–2025 (tratamento oncológico, informado pela família).']},
+ {id:'mariaap',nome:'Maria Aparecida Castro',cpf:'019.552.408-71',idade:'nasc. 1938',sit:['Falecida em 06/09/2019','red'],papel:'—',prof:'—',end:'Santos/SP (último endereço)',tel:'—',veic:[],fil:'—',rel:[['Filha','regina']],obs:['CPF com óbito registrado em cartório. Qualquer uso posterior deste CPF indica fraude cadastral.']},
+ {id:'nelson',nome:'Nelson Avelar',cpf:'087.661.230-14',idade:'63 anos',sit:['Testemunha','ok'],papel:'Porteiro',prof:'Sargento reformado · porteiro noturno do Cond. Recanto da Enseada',end:'Guarujá/SP',tel:'(13) 99600-1290',veic:[],fil:'—',obs:['Operador da portaria em 14/08 (Prova C).']}
+];
+const PBY=Object.fromEntries(PEOPLE.map(p=>[p.id,p]));
+const SUSP=['ricardo','camila','marcelo','rosangela','felipe'];
+
+const VEH=[
+ {placa:'FJM7C30',modelo:'Jeep Compass',cor:'preto',ano:2022,dono:'beatriz'},
+ {placa:'GHT4E19',modelo:'Toyota Hilux',cor:'branco',ano:2023,dono:'marcelo'},
+ {placa:'FQJ3B27',modelo:'Hyundai HB20 1.0',cor:'prata',ano:2019,dono:'felipe'},
+ {placa:'RTX9A01',modelo:'Toyota SW4',cor:'preto',ano:2025,dono:'ricardo'},
+ {placa:'FQK3C81',modelo:'Chevrolet Onix',cor:'prata',ano:2020,dono:'camila'},
+ {placa:'ELR2H55',modelo:'VW Gol',cor:'branco',ano:2014,donoTxt:'Marcos Vinícius Lopes (visitante da Casa 9)'},
+ {placa:'FAA0B12',modelo:'Hyundai Creta',cor:'azul',ano:2022,donoTxt:'Morador da Casa 3 (Cond. Recanto da Enseada)'},
+ {placa:'FQA1D90',modelo:'Fiat Argo',cor:'vermelho',ano:2021,donoTxt:'Locadora Litoral Rent a Car'},
+ {placa:'FQR7E44',modelo:'Renault Kwid',cor:'branco',ano:2023,donoTxt:'Cláudio Ferreira Neto'}
+];
+
+const COMP=[
+ {id:'alfanorte',nome:'Alfa Norte Logística Ltda.',cnpj:'08.331.774/0001-90',ab:'14/06/2016',sede:'Av. Eduardo P. Guinle, 2100 · Porto, Santos/SP',ativ:'Operador logístico portuário · importação e exportação',socios:'<button class="link" data-goto="pessoa:ricardo">Ricardo Almeida</button> · 80% · Fundo Norte Participações · 20%',obs:['Sob fiscalização sigilosa da Receita Federal (procedimento 2026-03).','Movimentação de cargas em 2025: R$ 2,3 bilhões.']},
+ {id:'ferreira',nome:'Ferreira & Campos Advogados',cnpj:'41.552.090/0001-18',ab:'02/02/2019',sede:'R. Frei Gaspar, 22, sala 1104 · Centro, Santos/SP',ativ:'Serviços advocatícios',socios:'<button class="link" data-goto="pessoa:camila">Camila Ferreira</button> · 70% · Rogério Campos · 30%',obs:['Principal cliente: Alfa Norte Logística.','Sociedade de advogados registrada na OAB/SP.']},
+ {id:'marina',nome:'Marina Brava Náutica Ltda.',cnpj:'27.904.118/0001-66',ab:'03/03/2010',sede:'Av. Santos Dumont, 4400 · Vicente de Carvalho, Guarujá/SP',ativ:'Guarda, manutenção e venda de embarcações',socios:'<button class="link" data-goto="pessoa:marcelo">Marcelo Vieira</button> · 100%',obs:['Funcionários: 9, entre eles <button class="link" data-goto="pessoa:felipe">Felipe Castro</button>.','Protestos bancários: R$ 412.000,00. Empréstimo de capital de giro com garantia em seguro de vida do sócio.']},
+ {id:'emporio',nome:'Empório Gonzaga Vinhos Ltda.',cnpj:'12.660.401/0001-35',ab:'09/08/2011',sede:'R. Galeão Carvalhal, 41 · Gonzaga, Santos/SP',ativ:'Comércio varejista de bebidas',socios:'Família Gaspar',obs:['Usa etiqueta de preço própria nas garrafas.','Aberto de segunda a sábado até 22h00.']}
+];
+
+const LINES={
+ '13994021188':{tit:'beatriz',op:'Vivo',tipo:'Pós-pago',at:'2014'},
+ '13987442091':{tit:'marcelo',op:'Claro',tipo:'Pós-pago',at:'2012'},
+ '13991305521':{tit:'felipe',op:'TIM',tipo:'Pós-pago',at:'2023'},
+ '13997010001':{tit:'ricardo',op:'Vivo',tipo:'Corporativo (Alfa Norte)',at:'2016'},
+ '13981207714':{tit:'camila',op:'TIM',tipo:'Pós-pago',at:'2015'},
+ '13997330102':{tit:'rosangela',op:'Vivo',tipo:'Pré-pago',at:'2019'},
+ '13998776612':{tit:'juliana',op:'Claro',tipo:'Pós-pago',at:'2018'},
+ '41991203344':{tit:'luisa',op:'Vivo',tipo:'Pós-pago',at:'2015'},
+ '13988124470':{tit:'mariaap',op:'TIM',tipo:'<b>Pré-pago</b>',at:'<b>10/08/2026</b> · chip vendido na Banca Embaré, Av. Bartolomeu de Gusmão, Santos'}
+};
+const fmtTel=d=>d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d;
+
+const ERB_LEG={'SNT-114':'Santos · Embaré','SNT-087':'Santos · Gonzaga','SNT-021':'Santos · Ponta da Praia (embarque da balsa)','GRJ-033':'Guarujá · Enseada','GRJ-011':'Guarujá · Pitangueiras','GRJ-005':'Guarujá · Vicente de Carvalho (Marina Brava)','GRJ-020':'Guarujá · Vila Zilda','SNT-045':'Santos · Boqueirão','SNT-060':'Santos · Centro','CWB-012':'Curitiba · Batel'};
+
+const BANK={
+ felipe:{banco:'Banco do Brasil · c/c 22.410-8',rows:[
+  ['20/03/2026','TED recebida · FERREIRA & CAMPOS ADVOGADOS · "serviços náuticos"','+90.000,00',1],
+  ['28/03/2026','Pagamento de boleto · HOSPITAL SANTA CLARA DO LITORAL','-86.400,00',1],
+  ['05/04/2026','TED recebida · FERREIRA & CAMPOS ADVOGADOS','+18.000,00',1],
+  ['05/05/2026','TED recebida · FERREIRA & CAMPOS ADVOGADOS','+18.000,00',1],
+  ['05/06/2026','TED recebida · FERREIRA & CAMPOS ADVOGADOS','+18.000,00',1],
+  ['05/07/2026','TED recebida · FERREIRA & CAMPOS ADVOGADOS','+18.000,00',1],
+  ['01/08/2026','Crédito de salário · MARINA BRAVA NAUTICA','+2.380,00'],
+  ['05/08/2026','TED recebida · FERREIRA & CAMPOS ADVOGADOS','+18.000,00',1],
+  ['14/08/2026 18:20','Saque 24h · Embaré, Santos','-200,00'],
+  ['14/08/2026 20:12','IFOOD *RESTAURANTE SABOR DA VILA','-52,80'],
+  ['14/08/2026 21:31','Débito · EMPORIO GONZAGA VINHOS · Santos','-189,90',1],
+  ['16/08/2026 09:40','FLORICULTURA JARDIM · coroa de flores "Para Dona Bia, que acreditou em mim"','-380,00']]},
+ marcelo:{banco:'Itaú · c/c 05521-3',rows:[
+  ['12/05/2026','Débito automático · VIDA PLENA SEGUROS (prêmio reajustado)','-1.140,00',1],
+  ['12/06/2026','Débito automático · VIDA PLENA SEGUROS','-1.140,00'],
+  ['14/08/2026 20:31','Tag de pedágio · BALSA SANTOS-GUARUJÁ','-21,40'],
+  ['14/08/2026 21:05','MOTEL MARÉ ALTA · Santos','-240,00',1],
+  ['15/08/2026 05:48','PADARIA PONTA DA PRAIA · Santos','-34,50']]},
+ ricardo:{banco:'Santander · c/c 9910-2',rows:[
+  ['14/08/2026 23:08','RESTAURANTE PORTO VELHO · Gonzaga, Santos','-1.480,00',1],
+  ['14/08/2026 23:24','ESTACIONAMENTO GONZAGA PARK','-25,00']]},
+ alfanorte:{banco:'Bradesco · c/c PJ 1200-4',rows:[
+  ['18/03/2026','TED enviada · FERREIRA & CAMPOS ADVOGADOS · "honorários"','-110.000,00',1],
+  ['15/05/2026','TED enviada · FERREIRA & CAMPOS ADVOGADOS · "honorários"','-72.000,00',1],
+  ['24/06/2026','TED enviada · FERREIRA & CAMPOS ADVOGADOS · "êxito"','-30.000,00',1],
+  ['15/08/2026','TED enviada · FERREIRA & CAMPOS ADVOGADOS · "honorários"','-72.000,00',1]]},
+ ferreira:{banco:'Banco Inter · c/c PJ 7781-0',rows:[
+  ['18/03/2026','TED recebida · ALFA NORTE LOGISTICA','+110.000,00'],
+  ['20/03/2026','TED enviada · FELIPE CASTRO · "serviços náuticos"','-90.000,00',1],
+  ['05/04/2026','TED enviada · FELIPE CASTRO','-18.000,00',1],
+  ['05/05/2026','TED enviada · FELIPE CASTRO','-18.000,00',1],
+  ['15/05/2026','TED recebida · ALFA NORTE LOGISTICA','+72.000,00'],
+  ['05/06/2026','TED enviada · FELIPE CASTRO','-18.000,00',1],
+  ['24/06/2026','TED recebida · ALFA NORTE LOGISTICA · "êxito"','+30.000,00'],
+  ['05/07/2026','TED enviada · FELIPE CASTRO','-18.000,00',1],
+  ['05/08/2026','TED enviada · FELIPE CASTRO','-18.000,00',1],
+  ['10/08/2026','Distribuição de lucros · CAMILA FERREIRA','-22.000,00'],
+  ['15/08/2026','TED recebida · ALFA NORTE LOGISTICA','+72.000,00']]},
+ camila:{banco:'Caixa · c/c 0441-9',rows:[
+  ['10/08/2026','Crédito · FERREIRA & CAMPOS (distribuição de lucros)','+22.000,00'],
+  ['14/08/2026 20:38','BAR DO TADEU · Pitangueiras, Guarujá','-146,00',1],
+  ['14/08/2026 21:40','POSTO SHELL · Centro, Santos','-120,00']]},
+ rosangela:{banco:'Caixa · poupança 0013-2',rows:[
+  ['14/08/2026 21:10','Pix recebido · SÔNIA BRANDT · "faxina sexta"','+180,00',1],
+  ['14/08/2026 21:26','Recarga cartão transporte · ônibus Guarujá','-10,00'],
+  ['15/08/2026 07:20','Recarga cartão transporte · ônibus Guarujá','-10,00']]},
+ marina:{banco:'Bradesco · c/c PJ 3304-1',rows:[
+  ['15/05/2026','Crédito · Empréstimo capital de giro · BANCO LITORAL','+800.000,00',1],
+  ['15/07/2026','Parcela do empréstimo · NÃO PAGA (saldo insuficiente)','-38.200,00',1],
+  ['05/08/2026','Folha de pagamento · 9 funcionários','-31.900,00']]},
+ beatriz:{banco:'Banco do Brasil · c/c 30.115-0',rows:[
+  ['01/08/2026','Crédito de salário · RECEITA FEDERAL','+18.910,77'],
+  ['14/08/2026 13:10','LIVRARIA DA ENSEADA · "presente aniversário mãe"','-89,90'],
+  ['14/08/2026 18:40','PADARIA ENSEADA · Guarujá','-27,60']]}
+};
+const PHONE={
+ '13991305521':[['14/08 17:30','Aparelho na marina','GRJ-005'],['14/08 17:55','Mensagem enviada a (13) 99402-1188 (Beatriz): "Dona Bia, o Seu Marcelo vai dormir na marina hoje de novo. Quer que eu passe aí amanhã pra ver a piscina?"','GRJ-005',1],['14/08 18:05','Conexão de dados','SNT-021'],['14/08 18:25','Aparelho conecta à ERB','SNT-114'],['14/08 18:31 → 00:58','Sessão de dados contínua, sem chamadas (perfil compatível com Wi-Fi residencial e jogo online)','SNT-114',1],['15/08 07:10','Aparelho ativo, mesma ERB','SNT-114']],
+ '13988124470':[['10/08 16:02','Ativação do chip pré-pago','SNT-114'],['14/08 19:58','Envio de WhatsApp para (13) 99402-1188 (Beatriz)','SNT-114',1],['14/08 20:03','Recebe WhatsApp de (13) 99402-1188','SNT-114',1],['14/08 21:29','Conexão de dados','SNT-087',1],['14/08 21:48','Conexão de dados','SNT-021',1],['14/08 22:01','Conexão de dados','GRJ-033',1],['14/08 23:16','Conexão de dados','GRJ-033',1],['14/08 23:38','Conexão de dados','SNT-021',1],['14/08 23:55','Conexão de dados','SNT-114'],['14/08 23:57','Aparelho desligado','SNT-114'],['16/08 14:51','Aparelho religado · chamada RECEBIDA de (13) 98120-7714 (Camila Ferreira), 48 s','SNT-114',1],['16/08 14:53','Aparelho desligado. Sem registros posteriores.','SNT-114']],
+ '13987442091':[['14/08 18:10','Mensagem enviada a (13) 99402-1188 (Beatriz): "Vou ficar na marina fechando o balanço. Durma bem."','GRJ-005',1],['14/08 19:50','Conexão','GRJ-005'],['14/08 20:44 → 15/08 05:50','Aparelho estacionado na mesma ERB','SNT-021',1],['14/08 21:02','Chamada originada para (13) 99877-6612 (Juliana), 2 min','SNT-021',1],['15/08 07:52','Chamada recebida de (13) 99733-0102 (Rosângela)','GRJ-005']],
+ '13997010001':[['14/08 19:50 → 23:20','Aparelho estacionado na mesma ERB','SNT-087'],['14/08 23:35','Conexão','SNT-045']],
+ '13981207714':[['14/08 20:05','Conexão','SNT-021'],['14/08 20:24 → 21:05','Aparelho na mesma ERB','GRJ-011'],['14/08 21:20','Conexão','SNT-021'],['14/08 21:40 → 15/08 07:00','Aparelho na mesma ERB','SNT-060'],['16/08 14:51','Chamada originada para (13) 98812-4470, 48 s (corredor da DFIC, logo após o depoimento)','SNT-060',1]],
+ '13997330102':[['14/08 18:40','Conexão','GRJ-020'],['14/08 19:00 → 21:15','Aparelho na mesma ERB','GRJ-033',1],['14/08 21:40 → 15/08 07:10','Aparelho na mesma ERB','GRJ-020',1],['15/08 07:35','Conexão','GRJ-033'],['15/08 07:52','Chamada originada para (13) 98744-2091 (Marcelo)','GRJ-033']],
+ '13994021188':[['14/08 17:55','Mensagem recebida de (13) 99130-5521 (Felipe)','GRJ-033'],['14/08 18:10','Mensagem recebida de (13) 98744-2091 (Marcelo)','GRJ-033'],['14/08 19:58','WhatsApp recebido de (13) 98812-4470','GRJ-033',1],['14/08 20:03','WhatsApp enviado para (13) 98812-4470','GRJ-033',1],['14/08 21:41','Áudio enviado para (41) 99120-3344 (Luísa)','GRJ-033'],['14/08 22:03','Chamada recebida do interfone da portaria','GRJ-033']],
+ '13998776612':[['14/08 20:50 → 15/08 06:00','Aparelho na mesma ERB','SNT-021'],['14/08 21:02','Chamada recebida de (13) 98744-2091 (Marcelo)','SNT-021']],
+ '41991203344':[['14/08 21:41','Áudio recebido de (13) 99402-1188','CWB-012']]
+};
+const RX={
+ felipe:[['02/07/2026','Zolpidem 10 mg · 30 comprimidos','Drogaria Atlântica · Embaré','Dr. Ricardo Menezes · CRM-SP 118.204'],['03/08/2026','Zolpidem 10 mg · 30 comprimidos','Drogaria Atlântica · Embaré','Dr. Ricardo Menezes · CRM-SP 118.204']],
+ marcelo:[['20/07/2026','Clonazepam 2 mg · 30 comprimidos','Drogasil · Guarujá','Dra. Ana Beatriz Leme · CRM-SP 90.551']],
+ regina:[['12/2025','Morfina 10 mg (uso hospitalar, encerrado)','Hospital Santa Clara do Litoral','Equipe de oncologia']]
+};
+const FERRY=[
+ ['20:04','S→G','FQR7E44','Passeio','Tag'],['20:10','S→G','FQK3C81','Passeio','Tag'],['20:22','G→S','GTX1A44','Utilitário','Cartão'],['20:26','S→G','ELR2H55','Passeio','Dinheiro'],['20:31','G→S','GHT4E19','Utilitário','Tag'],['20:48','G→S','DPA8C12','Passeio','Tag'],['21:03','S→G','FQA1D90','Passeio','Cartão'],['21:15','G→S','FQK3C81','Passeio','Tag'],['21:26','S→G','BRA3E77','Passeio','Tag'],['21:40','G→S','FTE0F31','Moto','Dinheiro'],['21:52','S→G','FQJ3B27','Passeio','Dinheiro'],['22:05','G→S','FQR7E44','Passeio','Tag'],['22:18','S→G','QAZ6B09','Passeio','Cartão'],['22:51','S→G','EYU5D20','Passeio','Tag'],['22:58','G→S','ELR2H55','Passeio','Dinheiro'],['23:07','G→S','FQA1D90','Passeio','Cartão'],['23:22','S→G','GPL2C61','Utilitário','Tag'],['23:36','G→S','FQJ3B27','Passeio','Dinheiro'],['23:49','S→G','FAA0B12','Passeio','Tag'],['00:14','G→S','QAZ6B09','Passeio','Cartão'],['00:40','S→G','DTR4H18','Passeio','Tag']
+];
+
+const LAUDOS=[
+ {t:20,id:'l1',de:'Instituto de Criminalística · perito Ivo Sant\'Anna',titulo:'Laudo complementar de local de crime',body:`<p><b>1. Tapete do escritório:</b> teste de luminol <b>positivo</b> na área úmida. Sangue humano, compatível com o da vítima. Alguém limpou a mancha com produto de limpeza. <b>O golpe aconteceu no escritório, no andar de cima.</b></p>
+<p><b>2. Estante:</b> a marca na poeira (18 × 9 cm) coincide com a base do troféu "Destaque Fiscal 2024", de vidro maciço, 2,1 kg, com aresta reta. O troféu não está na casa. É compatível com a lesão descrita pelo IML.</p>
+<p><b>3. Sifão da pia:</b> resíduo de <b>zolpidem</b> e de vinho tinto. As taças foram lavadas ali.</p>
+<p><b>4. Garrafa de vinho:</b> <b>nenhuma impressão digital</b>, nem mesmo da vítima. Foi limpa de propósito.</p>
+<p><b>5. Agenda do escritório:</b> nas páginas de 16/03 e 22/06 estão anotadas, a lápis, as datas das vistorias do dia seguinte na Alfa Norte.</p>
+<p><b>Conclusão:</b> a vítima bebeu vinho com zolpidem, foi golpeada no escritório e o corpo foi levado até a escada para simular uma queda.</p>`},
+ {t:40,id:'l2',de:'Perícia digital · celular da vítima',titulo:'Extração do celular de Beatriz',body:`<p>Conversa de WhatsApp com número <b>não salvo na agenda</b>:</p>
+<div class="tw"><table><tr><th>Hora</th><th>De</th><th>Mensagem</th></tr>
+<tr class="mark"><td class="t">19:58</td><td class="t">(13) 98812-4470</td><td>"Bia, sou eu. Meu celular morreu, tô com um chip emprestado. Posso passar aí hoje? Preciso muito conversar com você. Levo aquele vinho que você gosta."</td></tr>
+<tr class="mark"><td class="t">20:03</td><td class="t">Beatriz</td><td>"Pode vir. Também preciso falar com você. Olho no olho."</td></tr></table></div>
+<p style="margin-top:.8rem">Outras mensagens do dia: <b>17h55</b>, de (13) 99130-5521, salvo como "Felipe marina": avisa que o Seu Marcelo dormirá na marina. <b>18h10</b>, de (13) 98744-2091, salvo como "Marcelo": "Vou ficar na marina fechando o balanço. Durma bem." Áudio para Luísa às 21h41. Interfone da portaria às 22h03.</p>
+<p class="muted">O número desconhecido não tinha foto nem nome. A vítima respondeu como quem sabia exatamente quem era.</p>`},
+ {t:60,id:'l3',de:'Equipe de diligências · Empório Gonzaga',titulo:'Diligência no Empório Gonzaga',body:`<p>A loja confirmou a venda de uma garrafa de <b>Quinta do Vale Reserva 2019</b> às <b>21h31 de 14/08</b>, por R$ 189,90, paga no débito.</p>
+<p>A câmera interna mostra um <b>homem jovem e magro</b>, de boné cinza e moletom escuro, de costas para a câmera. Pagou e saiu em menos de dois minutos. O rosto não aparece. Na saída, entrou em um <b>carro pequeno prateado</b> estacionado em frente.</p>
+<p>O vendedor lembra que o cliente "parecia ter chorado" e perguntou "qual vinho uma senhora que gosta de tinto português ia achar especial".</p>`}
+];
+
+const HINTS=[
+ 'As datas das vistorias estavam na agenda do escritório de Beatriz, anotadas nas noites de 16/03 e 22/06. Quem esteve na casa nessas noites? Abram a ficha de cada suspeito em Pessoas.',
+ 'A portaria anotou só parte da placa. Busquem em Veículos com "?" no lugar dos caracteres ilegíveis. A balsa registra a placa completa.',
+ 'A garrafa de vinho saiu de uma loja de Santos às 21h31. Quem pagou por ela? E por que alguém deixaria o próprio celular em casa?'
+];
+
+const MOTIVES=[['m1','Receber o seguro de vida de R$ 1,2 milhão'],['m2','Silenciar Beatriz, que tinha descoberto quem vendia as datas das vistorias'],['m3','Vingança pela representação na OAB'],['m4','Ciúmes e o fim do casamento'],['m5','Livrar a empresa de uma autuação milionária']];
+const METHODS=[['x1','Empurrou a vítima da escada durante uma discussão'],['x2','Sedou a vítima com zolpidem no vinho, golpeou a nuca dela com o troféu no escritório e levou o corpo até a escada para simular queda'],['x3','Envenenou a vítima com clonazepam e ela caiu sozinha'],['x4','Contratou um terceiro para invadir a casa']];
+const EVID=[
+ ['e1','A balsa registrou o HB20 FQJ3B27 indo ao Guarujá às 21h52 e voltando às 23h36',1],
+ ['e2','O vinho foi comprado às 21h31 no Empório Gonzaga com o cartão de Felipe',1],
+ ['e3','Felipe retirou zolpidem com receita em 03/08',1],
+ ['e4','A Ferreira & Campos repassou a Felipe o dinheiro da Alfa Norte logo após o vazamento de março',1],
+ ['e5','O chip pré-pago no CPF da avó falecida de Felipe fez o trajeto até a casa da vítima',1],
+ ['e6','Felipe esteve na casa nas duas noites em que as datas foram anotadas; Marcelo viajava e Paulo estava internado',1],
+ ['e7','Luminol positivo no escritório: o golpe foi no andar de cima, não na escada',1],
+ ['e8','Seguro de vida de R$ 1,2 milhão em favor de Marcelo',0],
+ ['e9','Marcelo mentiu sobre dormir na marina',0],
+ ['e10','Rosângela esteve no condomínio na noite do crime e escondeu isso',0],
+ ['e11','Camila Ferreira foi ao Guarujá na noite do crime',0],
+ ['e12','Ricardo admitiu que a morte da auditora beneficiava a empresa',0]
+];
+const WRONG={
+ marcelo:'Marcelo é preso na segunda-feira. A imprensa adora: marido em crise, marina falida, seguro milionário. Na audiência de custódia, o advogado apresenta o recibo do Motel Maré Alta e a localização do celular dele em Santos a noite toda. Ele é solto em 48 horas, humilhado. Enquanto isso, o chip pré-pago nunca mais é ligado.',
+ ricardo:'Ricardo é conduzido algemado diante das câmeras. Doze testemunhas e a conta paga às 23h08 no Porto Velho o colocam em Santos durante todo o horário da morte. O habeas corpus sai em uma tarde, e a Alfa Norte processa a União por danos morais.',
+ camila:'Camila Ferreira é presa, mas a balsa mostra que ela voltou para Santos às 21h15, antes de o visitante chegar à Casa 14. O juiz relaxa a prisão. Ela some do fórum por um tempo, assustada.',
+ rosangela:'Rosângela é presa em casa, na frente dos filhos. Dois dias depois, a vizinha da Casa 22 confirma a faxina escondida, o Pix das 21h10 e a saída a pé às 21h12. Ela é solta, mas nenhuma família do condomínio volta a chamá-la.'
+};
+
+/* ============ ESTADO SALVO NO APARELHO ============
+   Tudo fica no localStorage do navegador: continua salvo depois de fechar a aba,
+   o navegador ou desligar o celular. Só some se o caso for reiniciado ou se os
+   dados do site forem apagados nas configurações do navegador. */
+const KEY='sigic-mare-baixa-v2';
+let S=null,draft={},route='ocorrencia',sub=null;
+let lastIn={};
+const fresh=()=>({team:'',start:0,war:[],hints:[],skips:[],pins:[],notes:'',read:[],acc:null,route:'ocorrencia',sub:null,draft:{},lastIn:{},logged:false});
+let canStore=true;
+function load(){try{const r=localStorage.getItem(KEY);if(r)return Object.assign(fresh(),JSON.parse(r))}catch(e){canStore=false}return null}
+let savedT;
+function save(){
+ if(!S)return;
+ S.route=route;S.sub=sub;S.draft=draft;S.lastIn=lastIn;
+ try{localStorage.setItem(KEY,JSON.stringify(S));const el=$('saved');if(el){el.classList.add('on');clearTimeout(savedT);savedT=setTimeout(()=>el.classList.remove('on'),1200)}}catch(e){canStore=false}
+}
+window.addEventListener('pagehide',save);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save()});
+/* código de progresso: leva o jogo para outro aparelho */
+const toCode=()=>{const o={...S};return btoa(unescape(encodeURIComponent(JSON.stringify(o))))};
+const fromCode=c=>JSON.parse(decodeURIComponent(escape(atob(c.trim()))));
+
+function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,2600)}
+const elapsed=()=>S&&S.start?Math.floor((Date.now()-S.start)/60000):0;
+const laudoOpen=l=>elapsed()>=l.t||S.skips.includes(l.id);
+const has=(type,target)=>S.war.some(w=>w.type===type&&(type==='balsa'||w.target===target));
+
+/* ============ NAVEGAÇÃO ============ */
+const IC={
+ caso:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h7l2 2h9v11H3z"/></svg>',
+ consultas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></svg>',
+ protegidos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
+ equipe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>',
+ acusar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4l6 6M11 7l6 6M8.5 9.5l6 6M4 20l7-7"/></svg>'
+};
+const SECTIONS=[
+ ['caso','Caso',[['ocorrencia','Resumo'],['suspeitos','Suspeitos'],['local','Local do crime'],['mensagens','Mensagens']]],
+ ['consultas','Consultas',[['pessoas','Pessoas'],['veiculos','Veículos'],['empresas','Empresas'],['linhas','Linhas']]],
+ ['protegidos','Sigilo',[['mandados','Pedir mandado'],['bancario','Bancário'],['telefonico','Telefonia'],['receitas','Receitas'],['balsa','Balsa']]],
+ ['equipe','Equipe',[['quadro','Quadro'],['dicas','Dicas'],['progresso','Progresso']]],
+ ['acusar','Acusar',[['acusacao','Acusação final']]]
+];
+const secOf=r=>SECTIONS.find(s=>s[2].some(x=>x[0]===r))||SECTIONS[0];
+function badge(k){
+ const unread=LAUDOS.filter(l=>laudoOpen(l)&&!S.read.includes(l.id)).length;
+ if(k==='mensagens'&&unread)return `<span class="badge">${unread}</span>`;
+ if(['bancario','telefonico','receitas','balsa'].includes(k)&&!S.war.some(w=>w.type===k))return `<span class="badge lock">🔒</span>`;
+ if(k==='quadro'&&S.pins.length)return `<span class="badge lock">${S.pins.length}</span>`;
+ return '';
+}
+function renderNav(){
+ $('rail').innerHTML=SECTIONS.map(([id,l,items])=>`<div class="grp">${l}</div>`+items.map(([k,n])=>`<button data-nav="${k}" aria-current="${route===k}">${n}${badge(k)}</button>`).join('')).join('');
+ const sec=secOf(route);
+ $('subs').innerHTML=sec[2].length>1?sec[2].map(([k,n])=>`<button data-nav="${k}" aria-current="${route===k}">${n}${badge(k)}</button>`).join(''):'';
+ const unread=LAUDOS.filter(l=>laudoOpen(l)&&!S.read.includes(l.id)).length;
+ $('tabbar').innerHTML=SECTIONS.map(([id,l,items])=>`<button data-sec="${id}" aria-current="${sec[0]===id}">${IC[id]}<span>${l}</span>${id==='caso'&&unread?'<i class="dot"></i>':''}</button>`).join('');
+ $('sWar').textContent=`${S.war.length}/${MAXW}`;
+ $('sTeam').textContent=S.team;
+ $('sStatus').innerHTML=S.acc?'<span class="flag ok">Inquérito relatado</span>':'<span class="flag amb">Em investigação</span>';
+ setToph();
+}
+function setToph(){const h=$('top').offsetHeight;if(h)document.documentElement.style.setProperty('--toph',h+'px')}
+window.addEventListener('resize',setToph);
+
+document.addEventListener('click',e=>{
+ const tb=e.target.closest('[data-sec]');
+ if(tb){const sec=SECTIONS.find(s=>s[0]===tb.dataset.sec);const last=sec[2].find(x=>x[0]===lastIn[sec[0]]);go(last?last[0]:sec[2][0][0]);return}
+ const n=e.target.closest('[data-nav]');if(n){go(n.dataset.nav);return}
+ const g=e.target.closest('[data-goto]');if(g){const [r,id]=g.dataset.goto.split(':');
+  if(r==='pessoa'){draft.pq=PBY[id].nome;go('pessoas',id)}
+  else if(r==='veic'){draft.vq=id;go('veiculos')}
+  else if(r==='emp'){draft.eq=COMP.find(c=>c.id===id).nome;go('empresas')}
+  return}
+ const p=e.target.closest('[data-pin]');if(p){pin(p.dataset.pin,p.dataset.txt,p);return}
+ const z=e.target.closest('[data-zoom]');if(z){$('lbimg').src=z.dataset.zoom;$('lbcap').textContent=z.dataset.cap||'';$('lb').hidden=false;return}
+ if(e.target.closest('#lb')){$('lb').hidden=true}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('lb').hidden=true});
+function go(r,s){route=r;sub=s||null;lastIn[secOf(r)[0]]=r;save();render();window.scrollTo(0,0)}
+function pin(t,txt,btn){if(S.pins.some(p=>p.t===t&&p.x===txt)){toast('Já está no quadro');return}S.pins.push({t,x:txt,at:Date.now()});save();if(btn)btn.classList.add('on');renderNav();toast('Fixado no quadro de provas')}
+const PINSVG='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6l-1 6 4 4H6l4-4z"/><path d="M12 13v8"/></svg>';
+const pinBtn=(t,txt)=>`<button class="pinb ${S.pins.some(p=>p.t===t&&p.x===txt)?'on':''}" data-pin="${esc(t)}" data-txt="${esc(txt)}" aria-label="Fixar no quadro" title="Fixar no quadro">${PINSVG}</button>`;
+function tbl(cols,rows,pinf){
+ return `<div class="tw"><table class="rt"><tr>${cols.map(c=>`<th>${c[0]}</th>`).join('')}${pinf?'<th></th>':''}</tr>${rows.map(r=>`<tr class="${r.mark?'mark':''}">${r.cells.map((v,i)=>`<td class="${cols[i][1]||''}${i===0?' lead':''}" data-l="${cols[i][0]}">${v}</td>`).join('')}${pinf?`<td class="act">${pinf(r)}</td>`:''}</tr>`).join('')}</table></div>`;
+}
+
+/* ============ LOGIN / RETOMADA ============ */
+$('lf').addEventListener('submit',e=>{
+ e.preventDefault();
+ const m=norm($('lmat').value).replace(/[\s-]/g,''),p=norm($('lpw').value).replace(/\s/g,'');
+ if(m!=='dfic0814'){$('lerr').textContent='Matrícula não encontrada. Confira a folha 01 do dossiê.';return}
+ if(p!=='marebaixa'){$('lerr').textContent='Senha incorreta. Use a senha da folha 01, sem espaço.';return}
+ if(!S||!S.start){S=fresh();S.start=Date.now()}
+ S.team=$('lteam').value.trim()||S.team||'Força-tarefa';
+ S.logged=true;save();enter();
+});
+let timer=null;
+function enter(){
+ route=S.route||'ocorrencia';sub=S.sub||null;draft=S.draft||{};lastIn=S.lastIn||{};
+ $('login').hidden=true;$('app').hidden=false;render();tick();clearInterval(timer);timer=setInterval(tick,15000);
+ if(!canStore)toast('Este navegador não permite salvar. Use a aba Progresso para guardar um código.');
+}
+function tick(){
+ if(!S)return;
+ const m=elapsed();$('sClock').textContent=String(Math.floor(m/60)).padStart(2,'0')+'h'+String(m%60).padStart(2,'0');
+ const n=LAUDOS.filter(laudoOpen).length;
+ if(tick.n!==undefined&&n>tick.n){toast('Novo laudo na caixa de mensagens');renderNav()}
+ tick.n=n;
+}
+
+/* ============ TELAS ============ */
+function render(){renderNav();const v=$('view');v.classList.remove('fade');void v.offsetWidth;v.classList.add('fade');v.innerHTML=(VIEWS[route]||VIEWS.ocorrencia)();bindView()}
+const VIEWS={};
+const cardS=id=>{const p=PBY[id];return `<button class="card-s" data-goto="pessoa:${id}"><img src="img/${p.foto}.jpg" alt="${esc(p.nome)}"><b>${esc(p.nome)}</b><span>${esc(p.papel)} · ${p.idade}</span></button>`};
+
+VIEWS.ocorrencia=()=>`
+ <div class="eyebrow">Inquérito nº 0814/2026 · DFIC Santos</div>
+ <h2>Morte de Beatriz Moraes Cardoso</h2>
+ <p>Auditora-Fiscal da Receita Federal, 41 anos, encontrada sem vida ao pé da escada de casa no Guarujá, na manhã de 15/08/2026. Investigava um esquema de contrabando da Alfa Norte Logística no Porto de Santos e suspeitava que alguém vendia as datas das vistorias.</p>
+ <div class="rec"><dl class="kv"><dt>Hora da morte</dt><dd>14/08, entre 22h30 e 23h30</dd><dt>Causa</dt><dd>Golpe na nuca com objeto de aresta reta</dd><dt>Toxicologia</dt><dd>Zolpidem + álcool</dd><dt>Mandados</dt><dd>${S.war.length} de ${MAXW} usados</dd><dt>Laudos</dt><dd>${LAUDOS.filter(laudoOpen).length} de ${LAUDOS.length} recebidos</dd></dl></div>
+ <h3>Suspeitos</h3>
+ <div class="cards">${SUSP.map(cardS).join('')}</div>
+ <h3>Como usar o SIGIC</h3>
+ <p><b>Consultas</b>: pessoas, veículos, empresas e titular de linhas telefônicas são livres. Placas aceitam <span class="mono">?</span> como curinga.</p>
+ <p><b>Sigilo</b>: extratos bancários, localização de celulares, receitas controladas e registros da balsa só aparecem com mandado. O juiz concede no máximo ${MAXW}. Menos mandados rendem mais pontos.</p>
+ <p>Laudos novos chegam em <b>Mensagens</b> durante a partida. Toque no alfinete de qualquer registro para fixá-lo no <b>Quadro</b>.</p>
+ <div class="notice">O progresso fica salvo neste aparelho automaticamente. Pode fechar e voltar quando quiser.</div>`;
+
+VIEWS.suspeitos=()=>`<div class="eyebrow">Caso</div><h2>Suspeitos</h2><p class="muted">Toque em uma ficha para ver os registros completos.</p><div class="cards">${SUSP.map(cardS).join('')}</div>`;
+
+VIEWS.local=()=>{
+ const F=[['fachada','Fachada da Casa 14. Jeep Compass preto da vítima na garagem.','wide'],['sala','Sala de estar. Garrafa de vinho sobre a mesa.'],['cozinha','Cozinha. Duas taças lavadas no escorredor.'],['hall','Hall de entrada. Sem arrombamento.'],['escada','Escada, onde o corpo foi encontrado. Degraus de pedra com borda arredondada.'],['planta','Planta baixa: escritório no andar de cima, ao lado da escada.','wide plan']];
+ return `<div class="eyebrow">Levantamento fotográfico · RLC 2026/0388</div><h2>Casa 14 · Recanto da Enseada</h2><p class="muted">Toque em uma foto para ampliar.</p>
+ <div class="photos">${F.map(([f,c,cl],i)=>`<figure class="${cl||''}" data-zoom="img/${f}.jpg" data-cap="Foto ${String(i+1).padStart(2,'0')} · ${esc(c)}" tabindex="0"><img src="img/${f}.jpg" alt="${esc(c)}"><figcaption>Foto ${String(i+1).padStart(2,'0')} · ${esc(c)}</figcaption></figure>`).join('')}</div>
+ <h3>O que a perícia anotou</h3>
+ <ul style="padding-left:1.1rem;display:grid;gap:.35rem;margin:0">
+  <li>Escritório: marca de 18 × 9 cm na poeira da estante e tapete úmido com cheiro de produto de limpeza.</li>
+  <li>Cozinha: duas taças lavadas à mão, lava-louças vazia.</li>
+  <li>Sala: vinho Quinta do Vale Reserva 2019 com etiqueta do Empório Gonzaga, R$ 189,90.</li>
+  <li>Sem arrombamento. Alarme desligado às 18h53.</li></ul>`;
+};
+
+VIEWS.mensagens=()=>{
+ let changed=false;
+ const L=LAUDOS.map(l=>{
+  const open=laudoOpen(l);
+  if(open&&!S.read.includes(l.id)){S.read.push(l.id);changed=true}
+  if(open)return `<article class="msg"><div class="meta"><span class="eyebrow">${esc(l.de)}</span>${pinBtn(l.titulo,strip(l.body).slice(0,240)+'…')}</div><h3 style="margin:.2rem 0 .6rem;color:var(--fg);font-size:1.25rem">${l.titulo}</h3>${l.body}</article>`;
+  const left=Math.max(0,l.t-elapsed());const pct=Math.min(100,elapsed()/l.t*100);
+  return `<article class="msg locked"><div class="meta"><span class="eyebrow">${esc(l.de)}</span><span class="mono muted" style="font-size:.78rem">chega em ~${left} min</span></div><h3 style="margin:.3rem 0 .5rem;color:var(--fg);font-size:1.15rem">${l.titulo}</h3><div class="bar"><i style="width:${pct}%"></i></div><div style="margin-top:.7rem"><button class="btn sm" data-skip="${l.id}">Pressionar a perícia e receber agora (−5 pts)</button></div></article>`;
+ }).join('');
+ if(changed){save();setTimeout(renderNav,0)}
+ return `<div class="eyebrow">Caixa de entrada</div><h2>Mensagens</h2>
+ <article class="msg"><div class="meta"><span class="eyebrow">Dra. Marta Albuquerque · Delegada Regional</span></div><p style="margin:.4rem 0 0">Equipe ${esc(S.team)}, o caso é de vocês. A imprensa diz que foi acidente, a família diz que foi crime, e a Alfa Norte já está ligando para Brasília. Não me tragam um culpado conveniente. Tragam provas.</p></article>${L}`;
+};
+
+function personCard(p,full){
+ return `<article class="rec ${full?'hit':''}"><header><div class="who">${p.foto?`<img src="img/${p.foto}.jpg" alt="" ${full?`data-zoom="img/${p.foto}.jpg" data-cap="${esc(p.nome)}"`:''}>`:''}<div style="min-width:0"><h4>${esc(p.nome)}</h4><div class="mono muted" style="font-size:.8rem">CPF ${p.cpf} · ${p.idade}</div><span class="flag ${p.sit[1]}" style="margin-top:.35rem">${p.sit[0]}</span></div></div>${full?pinBtn('Pessoa · '+p.nome,p.obs.map(strip).join(' | ')):`<button class="btn sm" data-open="${p.id}">Abrir</button>`}</header>
+ ${full?`<dl class="kv"><dt>Profissão</dt><dd>${p.prof}</dd><dt>Endereço</dt><dd>${esc(p.end)}</dd><dt>Telefone</dt><dd class="mono">${p.tel}</dd><dt>Filiação</dt><dd>${p.fil}</dd>
+ ${p.veic.length?`<dt>Veículos</dt><dd>${p.veic.map(v=>`<button class="link mono" data-goto="veic:${v}">${v}</button>`).join(', ')}</dd>`:''}
+ ${p.emp?`<dt>Empresas</dt><dd>${p.emp.map(c=>`<button class="link" data-goto="emp:${c}">${esc(COMP.find(x=>x.id===c).nome)}</button>`).join(', ')}</dd>`:''}
+ ${p.rel?`<dt>Vínculos</dt><dd>${p.rel.map(([r,id])=>`${r}: <button class="link" data-goto="pessoa:${id}">${esc(PBY[id].nome)}</button>`).join(' · ')}</dd>`:''}
+ <dt>Registros</dt><dd><ul style="margin:0;padding-left:1.1rem;display:grid;gap:.35rem">${p.obs.map(o=>`<li>${o}</li>`).join('')}</ul></dd></dl>`:''}
+ </article>`;
+}
+VIEWS.pessoas=()=>{
+ const q=draft.pq||'';const nq=norm(q),dq=digits(q);
+ let list=q.length>=2?PEOPLE.filter(p=>norm(p.nome).includes(nq)||(dq.length>=3&&digits(p.cpf).includes(dq))):[];
+ const one=sub?PBY[sub]:null;
+ return `<div class="eyebrow">Consulta aberta · cadastro de pessoas</div><h2>Pessoas</h2>
+ <form class="search" data-form="pq"><input type="search" id="qpessoa" placeholder="Nome ou CPF" value="${esc(q)}" enterkeyhint="search"><button class="btn primary">Buscar</button></form>
+ <div class="res">${one?personCard(one,true)+`<button class="btn sm" data-back="1" style="justify-self:start">← Voltar</button>`:(q.length<2?`<div class="empty">Digite ao menos 2 letras de um nome ou parte do CPF.<br>Ex.: <span class="mono">Castro</span>, <span class="mono">402.119</span></div><div class="cards">${SUSP.map(cardS).join('')}</div>`:list.length?list.map(p=>personCard(p,list.length===1)).join(''):`<div class="empty">Nenhuma pessoa encontrada para "${esc(q)}".</div>`)}</div>`;
+};
+VIEWS.veiculos=()=>{
+ const q=(draft.vq||'').toUpperCase().replace(/[^A-Z0-9?]/g,'');
+ let list=[];
+ if(q.length>=3){const re=new RegExp('^'+q.replace(/\?/g,'.'));list=VEH.filter(v=>re.test(v.placa))}
+ return `<div class="eyebrow">Consulta aberta · registro de veículos</div><h2>Veículos</h2>
+ <form class="search" data-form="vq"><input type="search" id="qveic" placeholder="FQJ3B27 ou FQ?3???" value="${esc(q)}" maxlength="7" autocapitalize="characters" enterkeyhint="search"><button class="btn primary">Buscar</button></form>
+ <p class="muted" style="font-size:.88rem">Use <span class="mono">?</span> para cada caractere ilegível. Padrão Mercosul: 3 letras, 1 número, 1 letra, 2 números.</p>
+ <div class="res">${q.length<3?`<div class="empty">Digite pelo menos 3 caracteres da placa.</div>`:list.length?tbl([['Placa','t'],['Modelo'],['Cor'],['Ano','num'],['Proprietário']],list.map(v=>({v,cells:[`<b>${v.placa}</b>`,v.modelo,v.cor,v.ano,v.dono?`<button class="link" data-goto="pessoa:${v.dono}">${esc(PBY[v.dono].nome)}</button>`:esc(v.donoTxt)]})),r=>pinBtn('Veículo '+r.v.placa,`${r.v.modelo} ${r.v.cor} · ${r.v.dono?PBY[r.v.dono].nome:r.v.donoTxt}`)):`<div class="empty">Nenhum veículo com a placa "${esc(q)}".</div>`}</div>`;
+};
+VIEWS.empresas=()=>{
+ const q=draft.eq||'';const nq=norm(q),dq=digits(q);
+ let list=q.length>=2?COMP.filter(c=>norm(c.nome).includes(nq)||(dq.length>=3&&digits(c.cnpj).includes(dq))):[];
+ return `<div class="eyebrow">Consulta aberta · Junta Comercial</div><h2>Empresas</h2>
+ <form class="search" data-form="eq"><input type="search" id="qemp" placeholder="Razão social ou CNPJ" value="${esc(q)}" enterkeyhint="search"><button class="btn primary">Buscar</button></form>
+ <div class="res">${q.length<2?`<div class="empty">Digite parte do nome. Ex.: <span class="mono">Alfa</span>, <span class="mono">Ferreira</span>, <span class="mono">Marina</span></div>`:list.length?list.map(c=>`<article class="rec"><header><div style="min-width:0"><h4>${esc(c.nome)}</h4><div class="mono muted" style="font-size:.8rem">CNPJ ${c.cnpj} · aberta em ${c.ab}</div></div>${pinBtn('Empresa · '+c.nome,strip(c.socios)+' | '+c.obs.map(strip).join(' | '))}</header><dl class="kv"><dt>Sede</dt><dd>${esc(c.sede)}</dd><dt>Atividade</dt><dd>${esc(c.ativ)}</dd><dt>Sócios</dt><dd>${c.socios}</dd><dt>Registros</dt><dd><ul style="margin:0;padding-left:1.1rem">${c.obs.map(o=>`<li>${o}</li>`).join('')}</ul></dd></dl></article>`).join(''):`<div class="empty">Nenhuma empresa encontrada.</div>`}</div>`;
+};
+VIEWS.linhas=()=>{
+ let q=digits(draft.lq||'');if(q.startsWith('55')&&q.length===13)q=q.slice(2);
+ const r=LINES[q];
+ return `<div class="eyebrow">Consulta aberta · titularidade (Anatel)</div><h2>Linhas telefônicas</h2>
+ <p class="muted" style="font-size:.9rem">Mostra apenas quem é o titular. Localização e chamadas exigem mandado de telefonia.</p>
+ <form class="search" data-form="lq"><input type="search" id="qlinha" inputmode="tel" placeholder="(13) 90000-0000" value="${esc(draft.lq||'')}" enterkeyhint="search"><button class="btn primary">Buscar</button></form>
+ <div class="res">${!q?`<div class="empty">Digite um número com DDD.</div>`:r?`<article class="rec hit"><header><div><h4 class="mono">${fmtTel(q)}</h4><span class="flag ${r.tit==='mariaap'?'red':'ok'}" style="margin-top:.35rem">${r.tit==='mariaap'?'Titular falecido':'Linha regular'}</span></div>${pinBtn('Linha '+fmtTel(q),`Titular: ${PBY[r.tit].nome} · ${strip(r.tipo)} · ativação ${strip(r.at)}`)}</header><dl class="kv"><dt>Titular</dt><dd><button class="link" data-goto="pessoa:${r.tit}">${esc(PBY[r.tit].nome)}</button> · CPF ${PBY[r.tit].cpf}</dd><dt>Operadora</dt><dd>${r.op}</dd><dt>Tipo</dt><dd>${r.tipo}</dd><dt>Ativação</dt><dd>${r.at}</dd></dl></article>`:`<div class="empty">Nenhuma linha cadastrada com esse número.</div>`}</div>`;
+};
+
+const WTYPES={bancario:'Quebra de sigilo bancário',telefonico:'Dados telefônicos e localização (ERB)',receitas:'Receitas controladas',balsa:'Travessias da balsa Santos–Guarujá (14/08, 20h–01h)'};
+function targetsFor(t){
+ const ppl=PEOPLE.filter(p=>!['mariaap','nelson'].includes(p.id)).map(p=>[p.id,p.nome]);
+ if(t==='bancario')return [...ppl,...COMP.filter(c=>c.id!=='emporio').map(c=>[c.id,c.nome])];
+ return ppl;
+}
+VIEWS.mandados=()=>{
+ const t=draft.wt||'bancario';const left=MAXW-S.war.length;
+ return `<div class="eyebrow">Poder Judiciário · 5ª Vara Federal de Santos</div><h2>Pedir mandado</h2>
+ <p>O juiz concede no máximo <b>${MAXW}</b>. Restam <b>${left}</b>. Cada mandado vale para um alvo; o da balsa cobre todas as travessias da noite.</p>
+ ${left<=0?`<div class="notice red">O juiz não concederá novos mandados neste inquérito.</div>`:`
+ <form class="rec" data-form="war" style="display:grid;gap:.9rem">
+  <label class="f">Tipo<select id="wtype">${Object.entries(WTYPES).map(([k,v])=>`<option value="${k}" ${k===t?'selected':''}>${v}</option>`).join('')}</select></label>
+  ${t==='balsa'?'':t==='telefonico'?`<label class="f">Número da linha<input type="text" id="wnum" inputmode="tel" placeholder="(13) 90000-0000" value="${esc(draft.wnum||'')}"></label>`:`<label class="f">Alvo<select id="wtarget">${targetsFor(t).map(([id,n])=>`<option value="${id}" ${draft.wtarget===id?'selected':''}>${esc(n)}</option>`).join('')}</select></label>`}
+  <label class="f">Justificativa ao juiz<textarea id="wjust" placeholder="Por que esta medida é necessária? Cite a prova que a sustenta.">${esc(draft.wjust||'')}</textarea></label>
+  <div class="err" id="werr" role="alert"></div>
+  <button class="btn primary">Protocolar pedido</button>
+ </form>`}
+ <h3>Mandados concedidos</h3>
+ ${S.war.length?tbl([['#','t'],['Tipo'],['Alvo'],['Justificativa']],S.war.map((w,i)=>({cells:[i+1,WTYPES[w.type].split(' (')[0],esc(w.label),`<span class="muted">${esc(w.just)}</span>`]}))):`<div class="empty">Nenhum mandado ainda.</div>`}`;
+};
+function lockView(type,title){return `<div class="eyebrow">Dados protegidos</div><h2>${title}</h2><div class="empty" style="display:grid;gap:.9rem;justify-items:center"><span class="stampx">Sigilo</span><span>Nenhum mandado de ${WTYPES[type].toLowerCase()} foi concedido ainda.</span><button class="btn primary" data-wgo="${type}">Pedir mandado</button></div>`}
+const wTargets=type=>S.war.filter(w=>w.type===type);
+VIEWS.bancario=()=>{
+ const ws=wTargets('bancario');if(!ws.length)return lockView('bancario','Bancário');
+ return `<div class="eyebrow">Sigilo bancário quebrado</div><h2>Bancário</h2>`+ws.map(w=>{
+  const b=BANK[w.target];
+  if(!b)return `<article class="rec"><header><h4>${esc(w.label)}</h4></header><div class="empty">Sem movimentação relevante entre 01/03 e 16/08/2026.</div></article>`;
+  return `<article class="rec"><header><div style="min-width:0"><h4>${esc(w.label)}</h4><div class="mono muted" style="font-size:.78rem">${b.banco} · 01/03 a 16/08/2026</div></div></header>${tbl([['Data','t'],['Lançamento'],['Valor (R$)','num']],b.rows.map(r=>({r,mark:r[3],cells:[r[0],esc(r[1]),`<span class="${r[2].startsWith('-')?'neg':'pos'}">${r[2]}</span>`]})),x=>pinBtn('Banco · '+w.label,x.r[0]+' · '+x.r[1]+' · R$ '+x.r[2]))}</article>`;
+ }).join('')+`<p class="muted" style="font-size:.85rem">Linhas destacadas foram marcadas pelo analista do COAF como atípicas ou relevantes.</p>`;
+};
+VIEWS.telefonico=()=>{
+ const ws=wTargets('telefonico');if(!ws.length)return lockView('telefonico','Telefonia (ERB)');
+ return `<div class="eyebrow">Dados telefônicos históricos</div><h2>Telefonia (ERB)</h2>
+ <p class="muted" style="font-size:.9rem">ERB é a antena que atendeu o celular. Ela indica a região, não o endereço exato.</p>`+ws.map(w=>{
+  const rows=PHONE[w.target]||[];
+  return `<article class="rec"><header><div><h4 class="mono">${fmtTel(w.target)}</h4><div class="muted" style="font-size:.85rem">Titular: ${esc(PBY[LINES[w.target].tit].nome)}</div></div></header>${rows.length?tbl([['Data/hora','t'],['Evento'],['Região']],rows.map(r=>({r,mark:r[3],cells:[r[0],esc(r[1]),`${ERB_LEG[r[2]]||r[2]} <span class="mono muted">${r[2]}</span>`]})),x=>pinBtn('ERB · '+fmtTel(w.target),x.r[0]+' · '+x.r[1]+' · '+(ERB_LEG[x.r[2]]||x.r[2]))):`<div class="empty">Sem registros no período.</div>`}</article>`;
+ }).join('');
+};
+VIEWS.receitas=()=>{
+ const ws=wTargets('receitas');if(!ws.length)return lockView('receitas','Receitas controladas');
+ return `<div class="eyebrow">Sistema Nacional de Receituário Controlado</div><h2>Receitas controladas</h2>`+ws.map(w=>{
+  const rows=RX[w.target]||[];
+  return `<article class="rec"><header><h4>${esc(w.label)}</h4></header>${rows.length?tbl([['Data','t'],['Medicamento'],['Farmácia'],['Prescritor']],rows.map(r=>({r,mark:/Zolpidem/.test(r[1]),cells:[r[0],esc(r[1]),esc(r[2]),esc(r[3])]})),x=>pinBtn('Receita · '+w.label,x.r[0]+' · '+x.r[1])):`<div class="empty">Nenhuma receita controlada nos últimos 12 meses.</div>`}</article>`;
+ }).join('');
+};
+VIEWS.balsa=()=>{
+ if(!has('balsa'))return lockView('balsa','Balsa Santos–Guarujá');
+ const q=(draft.fq||'').toUpperCase().replace(/[^A-Z0-9?]/g,'');
+ const rows=FERRY.filter(r=>!q||new RegExp('^'+q.replace(/\?/g,'.')).test(r[2]));
+ return `<div class="eyebrow">Concessionária da travessia</div><h2>Balsa Santos–Guarujá</h2>
+ <p class="muted" style="font-size:.9rem">Travessias de 14/08/2026, das 20h00 à 01h00. S→G: de Santos para o Guarujá.</p>
+ <form class="search" data-form="fq"><input type="search" id="qferry" placeholder="Filtrar placa (aceita ?)" value="${esc(q)}" maxlength="7" autocapitalize="characters"><button class="btn">Filtrar</button></form>
+ ${rows.length?tbl([['Hora','t'],['Sentido'],['Placa','t'],['Categoria'],['Pagamento']],rows.map(r=>({r,cells:[r[0],r[1],`<button class="link" data-goto="veic:${r[2]}">${r[2]}</button>`,r[3],r[4]]})),x=>pinBtn('Balsa · '+x.r[2],x.r[0]+' '+x.r[1]+' · '+x.r[2]+' · '+x.r[4])):`<div class="empty">Nenhuma travessia com essa placa.</div>`}`;
+};
+
+VIEWS.quadro=()=>`<div class="eyebrow">Equipe</div><h2>Quadro de provas</h2>
+ <p>Tudo o que vocês fixaram. Usem na fase de debate.</p>
+ <div class="res">${S.pins.length?S.pins.map((p,i)=>`<div class="pin"><div style="min-width:0"><b>${esc(p.t)}</b><small>${esc(p.x)}</small></div><button class="btn sm" data-unpin="${i}">Remover</button></div>`).join(''):`<div class="empty">Nada fixado ainda. Toque no alfinete de qualquer registro.</div>`}</div>
+ <h3>Anotações da equipe</h3><textarea id="notes" placeholder="Hipóteses, contradições, perguntas...">${esc(S.notes)}</textarea>`;
+
+VIEWS.dicas=()=>`<div class="eyebrow">Equipe</div><h2>Dicas</h2><p>Cada dica custa 5 pontos. Usem só quando a mesa travar.</p>
+ <div class="res">${HINTS.map((h,i)=>S.hints.includes(i)?`<div class="rec"><span class="eyebrow">Dica ${i+1}</span><p style="margin:.4rem 0 0">${h}</p></div>`:`<div class="rec" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap"><span class="eyebrow">Dica ${i+1} · bloqueada</span><button class="btn sm" data-hint="${i}">Revelar (−5 pts)</button></div>`).join('')}</div>`;
+
+VIEWS.progresso=()=>`<div class="eyebrow">Equipe</div><h2>Progresso salvo</h2>
+ <div class="notice">${canStore?'Tudo é salvo automaticamente neste aparelho a cada ação. Pode fechar o navegador ou desligar o celular: ao abrir o site de novo, o jogo continua de onde parou, com o mesmo relógio.':'Este navegador está bloqueando o salvamento automático (aba anônima ou dados bloqueados). Copie o código abaixo para não perder o jogo.'}</div>
+ <div class="rec" style="display:grid;gap:.6rem"><dl class="kv"><dt>Equipe</dt><dd>${esc(S.team)}</dd><dt>Início</dt><dd>${new Date(S.start).toLocaleString('pt-BR')}</dd><dt>Mandados</dt><dd>${S.war.length} de ${MAXW}</dd><dt>Provas fixadas</dt><dd>${S.pins.length}</dd><dt>Situação</dt><dd>${S.acc?'Acusação registrada':'Em investigação'}</dd></dl></div>
+ <h3>Continuar em outro aparelho</h3>
+ <p>Copie o código e cole no outro celular ou computador, nesta mesma tela.</p>
+ <textarea class="codebox" id="mycode" readonly>${toCode()}</textarea>
+ <button class="btn" id="copycode" style="justify-self:start">Copiar código</button>
+ <label class="f" style="margin-top:.6rem">Colar código de outro aparelho<textarea class="codebox" id="incode" placeholder="Cole aqui o código"></textarea></label>
+ <div class="err" id="cerr" role="alert"></div>
+ <button class="btn primary" id="loadcode" style="justify-self:start">Carregar progresso</button>
+ <h3>Começar do zero</h3>
+ <div id="reset"><button class="btn danger" data-reset="1">Reiniciar o caso</button></div>`;
+
+function scoreOf(a){
+ const sc={culp:a.c==='felipe'?40:0,mot:a.m==='m2'?15:0,met:a.x==='x2'?15:0};
+ const ok=a.e.filter(id=>EVID.find(x=>x[0]===id)[2]).length,bad=a.e.length-ok;
+ sc.ev=Math.max(0,Math.min(20,ok*4)-bad*4);
+ const n=S.war.length;sc.ef=n<=4?10:n===5?6:3;
+ sc.pen=(S.hints.length+S.skips.length)*5;
+ sc.total=Math.max(0,sc.culp+sc.mot+sc.met+sc.ev+sc.ef-sc.pen);sc.ok=ok;sc.bad=bad;
+ if(!sc.culp)sc.total=Math.min(sc.total,25);
+ return sc;
+}
+const RANK=t=>t>=90?'Lenda da investigação federal':t>=75?'Delegado(a) de elite':t>=55?'Investigador(a) sólido(a)':t>=35?'Ainda na academia':'Caso arquivado';
+VIEWS.acusacao=()=>{
+ if(S.acc)return resultView();
+ const a=draft.acc||{c:'',m:'',x:'',e:[]};
+ return `<div class="eyebrow">Fase 4 · Relatório final</div><h2>Acusação final</h2>
+ <div class="notice red">A acusação é definitiva. Depois de registrada, o SIGIC revela o desfecho e não aceita outra.</div>
+ <form data-form="acc" style="display:grid;gap:1.2rem;margin-top:.4rem">
+  <fieldset style="border:0;padding:0;margin:0"><h3 style="margin-top:0">1. Quem matou Beatriz?</h3><div class="opts">${SUSP.map(id=>`<label class="opt" style="align-items:center"><input type="radio" name="c" value="${id}" ${a.c===id?'checked':''}><img src="img/${PBY[id].foto}.jpg" alt=""><span><b>${PBY[id].nome}</b><br><span class="muted" style="font-size:.85rem">${PBY[id].papel}</span></span></label>`).join('')}</div></fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><h3 style="margin-top:0">2. Por quê?</h3><div class="opts">${MOTIVES.map(([id,n])=>`<label class="opt"><input type="radio" name="m" value="${id}" ${a.m===id?'checked':''}><span>${n}</span></label>`).join('')}</div></fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><h3 style="margin-top:0">3. Como?</h3><div class="opts">${METHODS.map(([id,n])=>`<label class="opt"><input type="radio" name="x" value="${id}" ${a.x===id?'checked':''}><span>${n}</span></label>`).join('')}</div></fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><h3 style="margin-top:0">4. Provas da acusação</h3><p class="muted" style="font-size:.88rem">Marquem só as que apoiam a sua tese. Provas erradas tiram pontos.</p><div class="opts">${EVID.map(([id,n])=>`<label class="opt"><input type="checkbox" name="e" value="${id}" ${a.e.includes(id)?'checked':''}><span>${n}</span></label>`).join('')}</div></fieldset>
+  <div class="err" id="aerr" role="alert"></div>
+  <div id="aconf"></div>
+  <button class="btn primary" id="abtn">Revisar acusação</button>
+ </form>`;
+};
+function resultView(){
+ const a=S.acc,sc=scoreOf(a),right=a.c==='felipe';const p=PBY[a.c];
+ return `<div class="eyebrow">Inquérito nº 0814/2026 · relatado</div><h2>${right?'Caso resolvido':'O caso não fechou'}</h2>
+ <div class="verdict ${right?'':'fail'}">
+  <div style="display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap"><div class="score">${sc.total}</div><div><div class="eyebrow">de 100 pontos</div><div style="font-family:var(--f-disp);font-size:1.5rem;text-transform:uppercase;line-height:1.1">${RANK(sc.total)}</div><div class="muted" style="font-size:.86rem">Equipe ${esc(S.team)} · ${a.min??elapsed()} min</div></div></div>
+  ${tbl([['Item'],['Pontos','num']],[
+   {cells:[`Culpado(a): ${esc(p.nome)}`,`${sc.culp}/40`]},{cells:['Motivo',`${sc.mot}/15`]},{cells:['Método',`${sc.met}/15`]},
+   {cells:[`Provas (${sc.ok} certas, ${sc.bad} erradas)`,`${sc.ev}/20`]},{cells:[`Eficiência (${S.war.length} mandados)`,`${sc.ef}/10`]},{cells:['Dicas e laudos adiantados',`<span class="neg">−${sc.pen}</span>`]}])}
+  ${right?'':`<p style="margin:0">${WRONG[a.c]}</p>`}
+ </div>
+ <h3>O que realmente aconteceu</h3>
+ <div class="who" style="margin-bottom:.8rem"><img src="img/felipe.jpg" alt="" style="width:72px;height:72px"><div><b style="font-family:var(--f-disp);font-size:1.3rem;text-transform:uppercase">Felipe Castro</b><div class="muted" style="font-size:.86rem">"O filho que ela escolheu"</div></div></div>
+ <div class="story">
+  <p>Em novembro de 2025, a mãe de <b>Felipe Castro</b> terminou um tratamento contra o câncer. A conta de R$ 86.400 foi parar em cartório no nome dele. Felipe não contou a ninguém, muito menos a Beatriz, que já tinha feito tanto por ele.</p>
+  <p>A advogada <b>Camila Ferreira</b> conhecia Felipe da marina e sabia de onde ele vinha. Fez a proposta: fotografar a agenda do escritório de Beatriz sempre que pudesse, em troca de dinheiro limpo, pago pelo escritório como "serviços náuticos". A Alfa Norte de <b>Ricardo Almeida</b> pagava a Ferreira & Campos, e o escritório pagava Felipe.</p>
+  <p>Em 16 de março, com Marcelo em Itajaí e o Inspetor-chefe internado, Felipe dormiu na Casa 14 para cuidar do cachorro. A data da vistoria estava na agenda. No dia 20, ele recebeu R$ 90 mil. No dia 28, quitou o hospital. Em 22 de junho, com Marcelo no Boat Show, aconteceu de novo.</p>
+  <p>Em agosto, Beatriz cruzou as datas, descartou o chefe, o marido e a diarista, e escreveu no caderno: <i>"Por favor, que eu esteja errada."</i> Na sexta, disse que "na segunda a casa ia cair". Felipe entendeu.</p>
+  <p>No dia 10, comprou um chip pré-pago com o CPF da avó falecida. No dia 14, avisou Beatriz que o marido dormiria fora, deixou o próprio celular em casa com um jogo online aberto, sacou dinheiro para a balsa e, às 19h58, mandou a mensagem pelo número novo: "Levo aquele vinho que você gosta". Às 21h31, comprou o tinto preferido dela com o cartão de débito, o único descuido de quem planejou tudo. Atravessou de balsa às 21h52 pagando em dinheiro, não usou a tag do portão e disse na portaria que era "entrega da marina".</p>
+  <p>No escritório, com Beatriz já sonolenta pelo zolpidem que ele dissolveu na taça, a conversa durou pouco. Quando ela se virou para a estante, ele pegou o troféu de Destaque Fiscal e golpeou uma vez. Depois levou o corpo até a escada, lavou as taças, limpou o tapete e a garrafa e jogou o troféu no canal da Ponta da Praia antes da balsa das 23h36.</p>
+  <p>Dois dias depois, segurou a faixa na vigília. Camila Ferreira ligou para o chip dele logo depois de depor: <i>"fica tranquilo, não falei nada"</i>.</p>
+ </div>
+ <h3>Epílogo</h3>
+ <div class="story">${right?`
+  <p>Na sala de interrogatório, Felipe ficou em silêncio por quarenta minutos. Quando a equipe colocou na mesa o registro da balsa ao lado do extrato do Empório Gonzaga, ele pediu um copo d'água e perguntou de novo, como no primeiro depoimento, se a Dona Bia tinha sofrido. Depois confessou tudo.</p>
+  <p>A Operação Maré Baixa prendeu Camila Ferreira e Ricardo Almeida por corrupção ativa e organização criminosa. A fiscalização da Alfa Norte foi concluída por uma nova equipe, com o nome de Beatriz na primeira página do relatório. Marcelo vendeu a marina. Rosângela voltou a trabalhar no condomínio, agora sem esconder de ninguém.</p>
+  <p>Luísa recebeu o caderno azul de volta. Abaixo de "Por favor, que eu esteja errada", escreveu a lápis: <i>"Você não estava. E eles te ouviram."</i></p>`:`
+  <p>A verdade apareceu meses depois, quando a corregedoria da Receita encontrou os pagamentos da Ferreira & Campos em outra auditoria. Até lá, Felipe tinha sido promovido a gerente da marina.</p>
+  <p>Querem tentar de novo? Reiniciem o caso abaixo e montem uma nova equipe.</p>`}
+ </div>
+ <h3>As pistas que levavam até a verdade</h3>
+ <ul style="padding-left:1.1rem;display:grid;gap:.4rem;max-width:70ch;margin:0">
+  <li>Caderno (Prova A) + Paulo internado em março: o vazamento saiu da agenda da casa.</li>
+  <li>Noites de 16/03 e 22/06: Marcelo hospedado em Itajaí e São Paulo; Rosângela sem acesso; tag de Felipe usada nas duas.</li>
+  <li>Protesto de R$ 86.400 de Felipe quitado em 28/03, oito dias depois do primeiro pagamento da Ferreira & Campos.</li>
+  <li>Portaria: "F Q ? 3 ? ? ?" → HB20 de Felipe ou Onix de Camila. A balsa desempata.</li>
+  <li>Linha das 19h58 → titular Maria Aparecida Castro (falecida) → mãe de Regina → avó de Felipe.</li>
+  <li>Felipe disse que não tomava remédio, mas retirou zolpidem em 03/08. Marcelo usa clonazepam, que deu negativo.</li>
+  <li>Marcelo e Rosângela mentiram, mas para esconder outras coisas: um caso amoroso e uma faxina proibida.</li>
+ </ul>
+ <div style="margin-top:1.6rem" id="reset"><button class="btn danger" data-reset="1">Reiniciar o caso</button></div>`;
+}
+
+/* ============ EVENTOS DAS TELAS ============ */
+function bindView(){
+ const v=$('view');
+ v.querySelectorAll('form[data-form]').forEach(f=>f.addEventListener('submit',e=>{
+  e.preventDefault();const k=f.dataset.form;
+  const blur=()=>document.activeElement&&document.activeElement.blur();
+  if(k==='pq'){draft.pq=$('qpessoa').value;sub=null;blur();save();render()}
+  if(k==='vq'){draft.vq=$('qveic').value;blur();save();render()}
+  if(k==='eq'){draft.eq=$('qemp').value;blur();save();render()}
+  if(k==='lq'){draft.lq=$('qlinha').value;blur();save();render()}
+  if(k==='fq'){draft.fq=$('qferry').value;blur();save();render()}
+  if(k==='war')submitWar();
+  if(k==='acc')submitAcc();
+ }));
+ v.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{sub=b.dataset.open;save();render();window.scrollTo(0,0)});
+ v.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{sub=null;save();render()});
+ v.querySelectorAll('[data-wgo]').forEach(b=>b.onclick=()=>{draft.wt=b.dataset.wgo;go('mandados')});
+ const wt=$('wtype');if(wt)wt.onchange=()=>{saveWarDraft();draft.wt=wt.value;save();render()};
+ ['wjust','wnum','wtarget'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',()=>{saveWarDraft();save()})});
+ v.querySelectorAll('[data-skip]').forEach(b=>b.onclick=()=>{S.skips.push(b.dataset.skip);save();tick();render()});
+ v.querySelectorAll('[data-hint]').forEach(b=>b.onclick=()=>{S.hints.push(+b.dataset.hint);save();render()});
+ v.querySelectorAll('[data-unpin]').forEach(b=>b.onclick=()=>{S.pins.splice(+b.dataset.unpin,1);save();render()});
+ v.querySelectorAll('figure[data-zoom]').forEach(f=>f.onkeydown=e=>{if(e.key==='Enter')f.click()});
+ const n=$('notes');if(n)n.oninput=()=>{S.notes=n.value;save()};
+ const cc=$('copycode');if(cc)cc.onclick=()=>{const t=$('mycode');try{navigator.clipboard.writeText(t.value).then(()=>toast('Código copiado'),()=>{t.select();toast('Selecionado. Copie com o menu do teclado.')})}catch(e){t.select()}};
+ const lc=$('loadcode');if(lc)lc.onclick=()=>{try{const o=fromCode($('incode').value);if(!o.start)throw 0;S=Object.assign(fresh(),o);save();enter();toast('Progresso carregado')}catch(e){$('cerr').textContent='Código inválido. Copie o código inteiro do outro aparelho.'}};
+ v.querySelectorAll('[data-reset]').forEach(b=>b.onclick=()=>{
+  $('reset').innerHTML=`<div class="confirm"><b>Apagar todo o progresso deste aparelho?</b><span class="muted">Mandados, quadro, anotações e acusação serão perdidos.</span><div style="display:flex;gap:.6rem;flex-wrap:wrap"><button class="btn danger" id="rYes">Sim, reiniciar</button><button class="btn" id="rNo">Cancelar</button></div></div>`;
+  $('rYes').onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}S=null;draft={};lastIn={};route='ocorrencia';sub=null;clearInterval(timer);tick.n=undefined;$('app').hidden=true;$('login').hidden=false;$('resume').hidden=true;$('lpw').value='';$('lteam').value='';window.scrollTo(0,0)};
+  $('rNo').onclick=()=>render();
+ });
+ const accF=v.querySelector('form[data-form=acc]');
+ if(accF)accF.addEventListener('change',()=>{draft.acc=readAcc();save()});
+}
+function saveWarDraft(){const j=$('wjust');if(j)draft.wjust=j.value;const t=$('wtarget');if(t)draft.wtarget=t.value;const nn=$('wnum');if(nn)draft.wnum=nn.value}
+function submitWar(){
+ saveWarDraft();const type=$('wtype').value,just=(draft.wjust||'').trim(),err=$('werr');
+ if(S.war.length>=MAXW){err.textContent='Limite de mandados atingido.';return}
+ if(just.length<15){err.textContent='O juiz exige uma justificativa com pelo menos 15 caracteres.';return}
+ let target='',label='';
+ if(type==='balsa'){if(has('balsa')){err.textContent='O mandado da balsa já foi concedido.';return}target='balsa';label='Todas as travessias de 14/08'}
+ else if(type==='telefonico'){let d=digits(draft.wnum);if(d.startsWith('55')&&d.length===13)d=d.slice(2);if(!LINES[d]){err.textContent='Número não encontrado no cadastro de linhas. Confira o DDD.';return}target=d;label=fmtTel(d)+' · '+PBY[LINES[d].tit].nome}
+ else{target=draft.wtarget||targetsFor(type)[0][0];label=(PBY[target]||COMP.find(c=>c.id===target)).nome}
+ if(has(type,target)){err.textContent='Já existe mandado deste tipo para este alvo.';return}
+ S.war.push({type,target,label,just,at:Date.now()});draft.wjust='';draft.wnum='';save();
+ toast('Mandado deferido pela 5ª Vara Federal');go(type);
+}
+function readAcc(){const f=document.querySelector('form[data-form=acc]');const g=n=>(f.querySelector(`input[name=${n}]:checked`)||{}).value||'';return{c:g('c'),m:g('m'),x:g('x'),e:[...f.querySelectorAll('input[name=e]:checked')].map(i=>i.value)}}
+function submitAcc(){
+ const a=readAcc();draft.acc=a;const err=$('aerr');
+ if(!a.c||!a.m||!a.x){err.textContent='Escolham culpado, motivo e método.';return}
+ if(!a.e.length){err.textContent='Marquem ao menos uma prova.';return}
+ err.textContent='';$('abtn').hidden=true;
+ $('aconf').innerHTML=`<div class="confirm"><b>Confirmar acusação contra ${esc(PBY[a.c].nome)}?</b><span class="muted">${a.e.length} prova(s) anexada(s). Não será possível mudar depois.</span><div style="display:flex;gap:.6rem;flex-wrap:wrap"><button type="button" class="btn primary" id="cYes">Registrar acusação</button><button type="button" class="btn" id="cNo">Revisar</button></div></div>`;
+ $('aconf').scrollIntoView({block:'center',behavior:'smooth'});
+ $('cYes').onclick=()=>{S.acc={...a,at:Date.now(),min:elapsed()};save();render();window.scrollTo(0,0)};
+ $('cNo').onclick=()=>{$('aconf').innerHTML='';$('abtn').hidden=false};
+}
+
+/* ============ INÍCIO: retoma o jogo salvo ============ */
+S=load();
+if(S&&S.start&&S.logged){enter()}
+else if(S&&S.start){
+ const r=$('resume');r.hidden=false;
+ r.innerHTML=`<b>Investigação em andamento encontrada</b><span class="muted" style="font-size:.88rem">Equipe ${esc(S.team)} · ${S.war.length} mandado(s) · ${S.pins.length} prova(s) fixada(s)</span><span class="muted" style="font-size:.85rem">Entre com as credenciais para continuar de onde pararam.</span>`;
+ $('lteam').value=S.team||'';
+}
+})();
+</script>
+</body>
+</html>
